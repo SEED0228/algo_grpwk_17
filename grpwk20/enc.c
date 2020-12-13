@@ -15,29 +15,42 @@ int enc(){
     exit(1);
   }
 
-  unsigned char c1, c2, res;
-  for(int i=0; i<ORGDATA_LEN; i+=2){
+  unsigned char c1, res1, res2;
+  for(int i=0; i<ORGDATA_LEN; i+=1){
+    int position = i;
+    for (;(i < position + 16) && (i<ORGDATA_LEN);i++){
     c1 = getc(ofp);
-    c2 = getc(ofp);
+    //c2 = getc(ofp);
     
-    switch( ( (c1 & 0x1) << 7) >> 6 | ( c2 & 0x1) ){
+    switch( c1 & 0x1 ){
     case 0:
-      res = BASE_A;
+      res1 = BASE_G;
+      res2 = BASE_C;
       break;
     case 1:
-      res = BASE_C;      
+      res1 = BASE_T; 
+      res2 = BASE_C;
       break;
+    /*
     case 2:
       res = BASE_G;      
       break;
     case 3:
       res = BASE_T;      
       break;
+      */
     }
-    fputc(res, efp);
+    fputc(res1, efp);
+    fputc(res2, efp);
+    }
+    fputc(BASE_A, efp);
+    fputc(BASE_A, efp);
+    fputc(BASE_A, efp);
+    fputc(BASE_A, efp);
+    fputc(BASE_A, efp);
   }
-  res = '\n';
-  fputc(res, efp);
+  res1 = '\n';
+  fputc(res1, efp);
   
   
   fclose(ofp);
