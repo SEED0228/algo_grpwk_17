@@ -51,7 +51,13 @@ int enc(){
     fputc(res1, efp);
     fputc(res2, efp);
     count++;
-    
+    if (i + 1 == ORGDATA_LEN){
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+    }
   }
   res1 = '\n';
   fputc(res1, efp);
