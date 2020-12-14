@@ -16,9 +16,17 @@ int enc(){
   }
 
   unsigned char c1, res1, res2;
-  for(int i=0; i<ORGDATA_LEN; i+=1){
-    int position = i;
-    for (;(i < position + 16) && (i<ORGDATA_LEN);i++){
+  int count = 0;
+  for(int i=0; i<ORGDATA_LEN; i++){
+    if (count == 16){
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      fputc(BASE_A, efp);
+      count = 0;
+    }
+    
     c1 = getc(ofp);
     //c2 = getc(ofp);
     
@@ -42,12 +50,8 @@ int enc(){
     }
     fputc(res1, efp);
     fputc(res2, efp);
-    }
-    fputc(BASE_A, efp);
-    fputc(BASE_A, efp);
-    fputc(BASE_A, efp);
-    fputc(BASE_A, efp);
-    fputc(BASE_A, efp);
+    count++;
+    
   }
   res1 = '\n';
   fputc(res1, efp);
