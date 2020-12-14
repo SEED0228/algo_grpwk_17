@@ -53,7 +53,7 @@ int dec(){
   count = 0;
   set = 0;
   while((c = getc(sfp)) != '\n'){
-    if (count == 16){set = 1;}
+    if (count == 4){set = 1;}
     if (set){
       if (c == BASE_A){
         c_before = c;
@@ -67,7 +67,7 @@ int dec(){
       }
     }else{
       if (c == BASE_A){
-        for (int i = 0; i < 16 - count;i++){
+        for (int i = 0; i < 4 - count;i++){
           if (count % 2 == 0){ res = 1;}else{res = 0;}
           switch (number)
           {

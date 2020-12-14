@@ -18,7 +18,7 @@ int enc(){
   unsigned char c1, res1, res2;
   int count = 0;
   for(int i=0; i<ORGDATA_LEN; i++){
-    if (count == 16){
+    if (count == 4){
       fputc(BASE_A, efp);
       fputc(BASE_A, efp);
       fputc(BASE_A, efp);
