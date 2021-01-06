@@ -5,7 +5,7 @@
 unsigned char rst = '0';
 
 void init(unsigned char* buff){
-  for (int i = 0;i < 50;i++){
+  for (int i = 0;i < 30;i++){
     buff[i] = rst;
   }
 }
@@ -13,7 +13,7 @@ void init(unsigned char* buff){
 void write(int tail,unsigned char* table, FILE* dfp){
   int j = 0, write_count = 0;
   //unsigned char res;
-  while (write_count < 3){
+  while (write_count < 1){
     if (table[j] == rst){
       j++;
       continue;
@@ -80,19 +80,19 @@ int dec(){
     exit(1);
   }
 
-
   unsigned char* buff;
   unsigned char* table;
-  buff = (unsigned char*)malloc(sizeof(unsigned char)*50);
-  table = (unsigned char*)malloc(sizeof(unsigned char)*50);
-  unsigned char c = rst, res, check_marker = rst, marker = rst,checked = '-', dismiss;
-  int count = 0, lap = 0, tail = 0, number = 0, set = 0;
-  
+  buff = (unsigned char*)malloc(sizeof(unsigned char)*30);
+  table = (unsigned char*)malloc(sizeof(unsigned char)*30);
+  unsigned char c = rst, res, check_marker = rst, marker = rst,/*checked = '-',*/ dismiss;
+  int count = 0, /*lap = 0,*/ tail = 0, number = 0, set = 0;
+  int has_A = 0, has_C = 0, has_G = 0, has_T = 0;
+
   init(buff);
   init(table);
 
-  while ((c = getc(sfp)) != '\n'){
-    lap++;
+  while((c = getc(sfp)) != '\n'){
+    
     if (set){
       if (c == dismiss){
         continue;
@@ -103,393 +103,340 @@ int dec(){
       }
     }
 
-
     buff[number] = c;
+
     if (number > 4){
       if ((buff[number] == buff[number-1])&&(buff[number] == buff[number-2])&&(buff[number] == buff[number-3])&&(buff[number] == buff[number-4])){
         set = 1;
         check_marker = marker;
         marker = buff[number];
         dismiss = buff[number];
-        //read process start here
+        //read process start
         count = 0;
+        has_A = 0, has_C = 0, has_G = 0, has_T = 0;
         init(table);
         tail = number - 5;
-        for (int i = 0;i < 5;i++){
-          buff[number-i] = rst;
+        for (int i = 0; i < 5; i++){
+          buff[number - i] = rst;
         }
         table[tail+3] = marker;
-        for (int i = 0; i < tail-1; i++){
-          if (buff[i]==checked) continue;
-          if ((buff[i]==BASE_A)&&(buff[i+1]==BASE_T)&&(buff[i+2]==BASE_C)){
-            table[i] = BASE_T;
-            count++;
-            buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+        for (int i = 0; i < tail+1; i++){
+          if (buff[i] == BASE_A){
+            has_A = 1;
+            continue;
           }
-          if ((buff[i]==BASE_C)&&(buff[i+1]==BASE_A)&&(buff[i+2]==BASE_G)){
-            table[i] = BASE_A;
-            count++;
-            buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+          if (buff[i] == BASE_C){
+            has_C = 1;
+            continue;
           }
-          if ((buff[i]==BASE_G)&&(buff[i+1]==BASE_C)&&(buff[i+2]==BASE_T)){
-            table[i] = BASE_C;
-            count++;
-            buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+          if (buff[i] == BASE_G){
+            has_G = 1;
+            continue;
           }
-          if ((buff[i]==BASE_T)&&(buff[i+1]==BASE_G)&&(buff[i+2]==BASE_A)){
-            table[i] = BASE_G;
-            count++;
-            buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+          if (buff[i] == BASE_T){
+            has_T = 1;
+            continue;
           }
         }
-        
-        switch (check_marker){
-          case BASE_A:
-            if ((buff[0]==BASE_T)&&(buff[1]==BASE_C)){
-              table[0] = BASE_T;
-              count++;
-              buff[0] = checked; buff[1] = checked;
-            }
-          break;
-          case BASE_C:
-            if ((buff[0]==BASE_A)&&(buff[1]==BASE_G)){
+        if ((has_A + has_C + has_G + has_T)==3){
+          if (has_A == 0){
+            table[0] = BASE_C;
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          if (has_C == 0){
+            table[0] = BASE_G;
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          if (has_G == 0){
+            table[0] = BASE_T;
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          if (has_T == 0){
+            table[0] = BASE_A;
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+        }else if ((has_A + has_C + has_G + has_T)==2){
+          switch (check_marker){
+            case BASE_A:
+              if ((buff[0]==BASE_T)&&(buff[1]==BASE_C)){
+                table[0] = BASE_T;
+                count++;
+                
+              }
+            break;
+            case BASE_C:
+              if ((buff[0]==BASE_A)&&(buff[1]==BASE_G)){
+                table[0] = BASE_A;
+                count++;
+                
+              }
+            break;
+            case BASE_G:
+              if ((buff[0]==BASE_C)&&(buff[1]==BASE_T)){
+                table[0] = BASE_C;
+                count++;
+                
+              }
+            break;
+            case BASE_T:
+              if ((buff[0]==BASE_G)&&(buff[1]==BASE_A)){
+                table[0] = BASE_G;
+                count++;
+              }
+            break;
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          switch (marker){
+            case BASE_A:
+              if ((buff[tail]==BASE_G)&&(buff[tail-1]==BASE_T)){
+                table[tail] = BASE_G;
+                count++;
+              }
+            break;
+            case BASE_C:
+              if ((buff[tail]==BASE_T)&&(buff[tail-1]==BASE_A)){
+                table[tail] = BASE_T;
+                count++;
+              }
+            break;
+            case BASE_G:
+              if ((buff[tail]==BASE_A)&&(buff[tail-1]==BASE_C)){
+                table[tail] = BASE_A;
+                count++;
+              }
+            break;
+            case BASE_T:
+              if ((buff[tail]==BASE_C)&&(buff[tail-1]==BASE_G)){
+                table[tail] = BASE_C;
+                count++;
+              }
+            break;
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          //test start
+          if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C))||((buff[0]==BASE_T)&&(buff[1]==BASE_C))){
+            table[0] = BASE_T;
+            count++;
+            
+            
+          }
+          if (((buff[0]==BASE_C)&&(buff[1]==BASE_A))||((buff[0]==BASE_C)&&(buff[1]==BASE_G))||((buff[0]==BASE_A)&&(buff[1]==BASE_G))){
+            table[0] = BASE_A;
+            count++;
+            
+            
+          }
+          if (((buff[0]==BASE_G)&&(buff[1]==BASE_C))||((buff[0]==BASE_C)&&(buff[1]==BASE_T))||((buff[0]==BASE_G)&&(buff[1]==BASE_T))){
+            table[0] = BASE_C;
+            count++;
+            
+            
+          }
+          if (((buff[0]==BASE_T)&&(buff[1]==BASE_G))||((buff[0]==BASE_G)&&(buff[1]==BASE_A))||((buff[0]==BASE_T)&&(buff[1]==BASE_A))){
+            table[0] = BASE_G;
+            count++;
+            
+            
+          }
+          if (count >= 1){
+          write(tail, table, dfp);
+          init(buff);
+          number = 0;
+          continue;
+          }
+          //test finish
+
+          if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
+            table[0] = BASE_T;
+            count++;
+            
+          }
+          if (((check_marker==BASE_C)&&(buff[0]==BASE_A))||((check_marker==BASE_C)&&(buff[0]==BASE_G))||((check_marker==BASE_A)&&(buff[0]==BASE_G))){
+            table[0] = BASE_A;
+            count++;
+            
+          }
+          if (((check_marker==BASE_G)&&(buff[0]==BASE_C))||((check_marker==BASE_C)&&(buff[0]==BASE_T))||((check_marker==BASE_G)&&(buff[0]==BASE_T))){
+            table[0] = BASE_C;
+            count++;
+            
+          }
+          if (((check_marker==BASE_T)&&(buff[0]==BASE_G))||((check_marker==BASE_G)&&(buff[0]==BASE_A))||((check_marker==BASE_T)&&(buff[0]==BASE_A))){
+            table[0] = BASE_G;
+            count++;
+            
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          if (((buff[tail]==BASE_A)&&(marker==BASE_T))||((buff[tail]==BASE_A)&&(marker==BASE_C))||((buff[tail]==BASE_T)&&(marker==BASE_C))){
+            table[tail] = BASE_T;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_C)&&(marker==BASE_A))||((buff[tail]==BASE_C)&&(marker==BASE_G))||((buff[tail]==BASE_A)&&(marker==BASE_G))){
+            table[tail] = BASE_A;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_G)&&(marker==BASE_C))||((buff[tail]==BASE_C)&&(marker==BASE_T))||((buff[tail]==BASE_G)&&(marker==BASE_T))){
+            table[tail] = BASE_C;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_T)&&(marker==BASE_G))||((buff[tail]==BASE_G)&&(marker==BASE_A))||((buff[tail]==BASE_T)&&(marker==BASE_A))){
+            table[tail] = BASE_G;
+            count++;
+            
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          switch (buff[0]){
+            case BASE_A:
               table[0] = BASE_A;
-              count++;
-              buff[0] = checked; buff[1] = checked;
-            }
-          break;
-          case BASE_G:
-            if ((buff[0]==BASE_C)&&(buff[1]==BASE_T)){
+                count++;
+                
+            break;
+            case BASE_C:
               table[0] = BASE_C;
-              count++;
-              buff[0] = checked; buff[1] = checked;
-            }
-          break;
-          case BASE_T:
-            if ((buff[0]==BASE_G)&&(buff[1]==BASE_A)){
+                count++;
+                
+            break;
+            case BASE_G:
               table[0] = BASE_G;
-              count++;
-              buff[0] = checked; buff[1] = checked;
-            }
-          break;
-        }
-        switch (marker){
-          case BASE_A:
-            if ((buff[tail]==BASE_G)&&(buff[tail-1]==BASE_T)){
-              table[tail] = BASE_G;
-              count++;
-              buff[tail] = checked; buff[tail-1] = checked;
-            }
-          break;
-          case BASE_C:
-            if ((buff[tail]==BASE_T)&&(buff[tail-1]==BASE_A)){
-              table[tail] = BASE_T;
-              count++;
-              buff[tail] = checked; buff[tail-1] = checked;
-            }
-          break;
-          case BASE_G:
-            if ((buff[tail]==BASE_A)&&(buff[tail-1]==BASE_C)){
-              table[tail] = BASE_A;
-              count++;
-              buff[tail] = checked; buff[tail-1] = checked;
-            }
-          break;
-          case BASE_T:
-            if ((buff[tail]==BASE_C)&&(buff[tail-1]==BASE_T)){
-              table[tail] = BASE_C;
-              count++;
-              buff[tail] = checked; buff[tail-1] = checked;
-            }
-          break;
-        }
-        
-        if (count >= 3){
-          //write process here
+                count++;
+                
+            break;
+            case BASE_T:
+              table[0] = BASE_T;
+                count++;
+                
+            break;
+          }
+          write(tail, table, dfp);
+          init(buff);
+          number = 0;
+          continue;
+        }else{
+          if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
+            table[0] = BASE_T;
+            count++;
+            
+          }
+          if (((check_marker==BASE_C)&&(buff[0]==BASE_A))||((check_marker==BASE_C)&&(buff[0]==BASE_G))||((check_marker==BASE_A)&&(buff[0]==BASE_G))){
+            table[0] = BASE_A;
+            count++;
+            
+          }
+          if (((check_marker==BASE_G)&&(buff[0]==BASE_C))||((check_marker==BASE_C)&&(buff[0]==BASE_T))||((check_marker==BASE_G)&&(buff[0]==BASE_T))){
+            table[0] = BASE_C;
+            count++;
+            
+          }
+          if (((check_marker==BASE_T)&&(buff[0]==BASE_G))||((check_marker==BASE_G)&&(buff[0]==BASE_A))||((check_marker==BASE_T)&&(buff[0]==BASE_A))){
+            table[0] = BASE_G;
+            count++;
+            
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          if (((buff[tail]==BASE_A)&&(marker==BASE_T))||((buff[tail]==BASE_A)&&(marker==BASE_C))||((buff[tail]==BASE_T)&&(marker==BASE_C))){
+            table[tail] = BASE_T;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_C)&&(marker==BASE_A))||((buff[tail]==BASE_C)&&(marker==BASE_G))||((buff[tail]==BASE_A)&&(marker==BASE_G))){
+            table[tail] = BASE_A;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_G)&&(marker==BASE_C))||((buff[tail]==BASE_C)&&(marker==BASE_T))||((buff[tail]==BASE_G)&&(marker==BASE_T))){
+            table[tail] = BASE_C;
+            count++;
+            
+          }
+          if (((buff[tail]==BASE_T)&&(marker==BASE_G))||((buff[tail]==BASE_G)&&(marker==BASE_A))||((buff[tail]==BASE_T)&&(marker==BASE_A))){
+            table[tail] = BASE_G;
+            count++;
+            
+          }
+          if (count >= 1){
+            write(tail, table, dfp);
+            init(buff);
+            number = 0;
+            continue;
+          }
+          switch (buff[0]){
+            case BASE_A:
+              table[0] = BASE_A;
+                count++;
+                
+            break;
+            case BASE_C:
+              table[0] = BASE_C;
+                count++;
+                
+            break;
+            case BASE_G:
+              table[0] = BASE_G;
+                count++;
+                
+            break;
+            case BASE_T:
+              table[0] = BASE_T;
+                count++;
+                
+            break;
+          }
           write(tail, table, dfp);
           init(buff);
           number = 0;
           continue;
         }
-        if ((buff[0]==checked)&&(buff[tail]==checked)){
-          for (int i = 2; i < tail - 2;i++){
-            if (buff[i]==checked) continue;
-            if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
-              table[i] = BASE_T;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-              break;
-            }
-            if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
-              table[i] = BASE_A;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-              break;
-            }
-            if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
-              table[i] = BASE_C;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-              break;
-            }
-            if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
-              table[i] = BASE_G;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-              break;
-            }
-          }
-          if (count >= 3){
-              //write process here
-              write(tail, table, dfp);
-              init(buff);
-              number = 0;
-              continue;
-            }
-        }
-        if ((buff[0]==checked)&&(buff[tail]!=checked)){
-          for (int i = 1; i < tail;i++){
-            if (buff[i]==checked) continue;
-            if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
-              table[i] = BASE_T;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
-              table[i] = BASE_A;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
-              table[i] = BASE_C;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
-              table[i] = BASE_G;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-          if (((buff[tail]==BASE_A)&&(marker==BASE_T))||((buff[tail]==BASE_A)&&(marker==BASE_C))||((buff[tail]==BASE_T)&&(marker==BASE_C))){
-            table[tail] = BASE_T;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_C)&&(marker==BASE_A))||((buff[tail]==BASE_C)&&(marker==BASE_G))||((buff[tail]==BASE_A)&&(marker==BASE_G))){
-            table[tail] = BASE_A;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_G)&&(marker==BASE_C))||((buff[tail]==BASE_C)&&(marker==BASE_T))||((buff[tail]==BASE_G)&&(marker==BASE_T))){
-            table[tail] = BASE_C;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_T)&&(marker==BASE_G))||((buff[tail]==BASE_G)&&(marker==BASE_A))||((buff[tail]==BASE_T)&&(marker==BASE_A))){
-            table[tail] = BASE_G;
-            count++;
-            buff[tail] = checked;
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-        }
-        if ((buff[0]!=checked)&&(buff[tail]==checked)){
-          for (int i = 0; i < tail - 2;i++){
-            if (buff[i]==checked) continue;
-            if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
-              table[i] = BASE_T;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
-              table[i] = BASE_A;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
-              table[i] = BASE_C;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
-              table[i] = BASE_G;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-          if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
-            table[0] = BASE_T;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_C)&&(buff[0]==BASE_A))||((check_marker==BASE_C)&&(buff[0]==BASE_G))||((check_marker==BASE_A)&&(buff[0]==BASE_G))){
-            table[0] = BASE_A;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_G)&&(buff[0]==BASE_C))||((check_marker==BASE_C)&&(buff[0]==BASE_T))||((check_marker==BASE_G)&&(buff[0]==BASE_T))){
-            table[0] = BASE_C;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_T)&&(buff[0]==BASE_G))||((check_marker==BASE_G)&&(buff[0]==BASE_A))||((check_marker==BASE_T)&&(buff[0]==BASE_A))){
-            table[0] = BASE_G;
-            count++;
-            buff[0] = checked;
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-        }
-        if ((buff[0]!=checked)&&(buff[tail]!=checked)){
-          for (int i = 0; i < tail;i++){
-            if (buff[i]==checked) continue;
-            if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
-              table[i] = BASE_T;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
-              table[i] = BASE_A;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
-              table[i] = BASE_C;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-            if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
-              table[i] = BASE_G;
-              count++;
-              buff[i] = checked; buff[i+1] = checked;
-            }
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-          if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
-            table[0] = BASE_T;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_C)&&(buff[0]==BASE_A))||((check_marker==BASE_C)&&(buff[0]==BASE_G))||((check_marker==BASE_A)&&(buff[0]==BASE_G))){
-            table[0] = BASE_A;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_G)&&(buff[0]==BASE_C))||((check_marker==BASE_C)&&(buff[0]==BASE_T))||((check_marker==BASE_G)&&(buff[0]==BASE_T))){
-            table[0] = BASE_C;
-            count++;
-            buff[0] = checked;
-          }
-          if (((check_marker==BASE_T)&&(buff[0]==BASE_G))||((check_marker==BASE_G)&&(buff[0]==BASE_A))||((check_marker==BASE_T)&&(buff[0]==BASE_A))){
-            table[0] = BASE_G;
-            count++;
-            buff[0] = checked;
-          }
-          if (((buff[tail]==BASE_A)&&(marker==BASE_T))||((buff[tail]==BASE_A)&&(marker==BASE_C))||((buff[tail]==BASE_T)&&(marker==BASE_C))){
-            table[tail] = BASE_T;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_C)&&(marker==BASE_A))||((buff[tail]==BASE_C)&&(marker==BASE_G))||((buff[tail]==BASE_A)&&(marker==BASE_G))){
-            table[tail] = BASE_A;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_G)&&(marker==BASE_C))||((buff[tail]==BASE_C)&&(marker==BASE_T))||((buff[tail]==BASE_G)&&(marker==BASE_T))){
-            table[tail] = BASE_C;
-            count++;
-            buff[tail] = checked;
-          }
-          if (((buff[tail]==BASE_T)&&(marker==BASE_G))||((buff[tail]==BASE_G)&&(marker==BASE_A))||((buff[tail]==BASE_T)&&(marker==BASE_A))){
-            table[tail] = BASE_G;
-            count++;
-            buff[tail] = checked;
-          }
-          if (count >= 3){
-            //write
-            write(tail, table, dfp);
-            init(buff);
-            number = 0;
-            continue;
-          }
-        }
-        for (int i = 0; i < tail; i++){
-          if (count >= 3) break;
-          switch (buff[i]){
-            case BASE_A:
-              table[i] = BASE_A;
-                count++;
-                buff[i] = checked;
-            break;
-            case BASE_C:
-              table[i] = BASE_A;
-                count++;
-                buff[i] = checked;
-            break;
-            case BASE_G:
-              table[i] = BASE_A;
-                count++;
-                buff[i] = checked;
-            break;
-            case BASE_T:
-              table[i] = BASE_A;
-                count++;
-                buff[i] = checked;
-            break;
-          }
-        }
-        
-        //write
-        write(tail, table, dfp);
-        init(buff);
-        number = 0;
-        continue;
-        //read process finish here
-        number = 0;
-        continue;
-
+        //read process finish
       }
     }
     number++;
-
   }
 
   res = '\n';
   fputc(res, dfp);
+    
   fclose(sfp);
   fclose(dfp);
-  
   return(0);
 }
 
