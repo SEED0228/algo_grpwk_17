@@ -28,7 +28,7 @@ Diff3+Marker と同じ符号化↓
   
 まず，seqdataから5連続で同じ文字だったら marker と判断し，その1セットをバッファ buff に格納します  
  ```C
- unsigned char* buff[30];
+ unsigned char* buff;
  int number;
  if ((buff[number] == buff[number-1])&&(buff[number] == buff[number-2])&&(buff[number] == buff[number-3])&&(buff[number] == buff[number-4])){
  ...
