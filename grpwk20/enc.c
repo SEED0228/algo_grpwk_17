@@ -63,7 +63,7 @@ int enc(){
       fputc(res2, efp);
       fputc(res3, efp);
     }else{
-      for (int i = 0; i < 10;i++){
+      for (int i = 0; i < 8;i++){
         fputc(res2, efp);
       }
       check_marker = marker;
