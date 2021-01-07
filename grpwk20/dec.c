@@ -106,7 +106,7 @@ int dec(){
     buff[number] = c;
 
     if (number > 4){
-      if ((buff[number] == buff[number-1])&&(buff[number] == buff[number-2])&&(buff[number] == buff[number-3])&&(buff[number] == buff[number-4])){
+      if ((buff[number] == buff[number-1])&&(buff[number] == buff[number-2])&&(buff[number] == buff[number-3])/*&&(buff[number] == buff[number-4])*/){
         set = 1;
         check_marker = marker;
         marker = buff[number];
