@@ -201,7 +201,7 @@ if ((has_A + has_C + has_G + has_T)==3){
 ```
 
 `has_A`, `has_C`, `has_G`, `has_T` の和は `2` の場合を考える．  
-<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで完全一致比較する．発見したら書き込んで終了．
+<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで<ruby>完全一致<rp>（</rp><rt>exact match</rt><rp>）</rp></ruby>で比較する．発見したら書き込んで終了．
 
 ```c
 if ((has_A + has_C + has_G + has_T)==3){
@@ -281,7 +281,7 @@ switch (marker){
   }
 ```
 
-ここまで来た場合，<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>に対し部分一致比較を行う．
+ここまで来た場合，<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>に対し<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較を行う．
 
 ```c
 if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C))||((buff[0]==BASE_T)&&(buff[1]==BASE_C))){
@@ -316,7 +316,7 @@ if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C
   }
 ```
 
-さらに，`check_marker` と `marker` を含んで部分一致比較する．
+さらに，`check_marker` と `marker` を含んで<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較する．
 
 ```c
 if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
@@ -405,6 +405,6 @@ switch (buff[0]){
 ```
 
 `has_A`, `has_C`, `has_G`, `has_T` の和は `1` の場合を考える．  
-和が `2` の時と同じく部分一致比較を行い，それで終わらなければ読み取った値をそのまま書き込んで終了．この部分は前述と同じなので省略する．  
+和が `2` の時と同じく<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較を行い，それで終わらなければ読み取った値をそのまま書き込んで終了．この部分は前述と同じなので省略する．  
 
 これで処理過程が終わった．
