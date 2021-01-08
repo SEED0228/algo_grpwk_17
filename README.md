@@ -19,10 +19,10 @@ Diff3+Marker と同じ符号化↓
 ###### 例  
 | orgdata | encdata |
 |:---:|:---:| 
-| 0010 | CAGCAGGGGGGGGGGG |
-| 0111 | GCTGCTTTTTTTTTTT |
-| 1010 | TGATGAGGGGGGGGGG |
-| 1100 | ATCATCAAAAAAAAAA | 
+| 0010 | CAGCAGGGGGGGGG |
+| 0111 | GCTGCTTTTTTTTT |
+| 1010 | TGATGAGGGGGGGG |
+| 1100 | ATCATCAAAAAAAA | 
 ## 判定法
 - 下のコードはイメージで，実際のコードではありません  
   
