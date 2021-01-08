@@ -77,7 +77,7 @@ int number;//buff に読み込む際に使う
 int set;//いま読み込み中なのか処理中なのか示すもの
 int has_A, has_C, has_G, has_T;//A/C/G/T があるかどうか示すもの
 void init(buff);//buff/table を初期化する，初期化とは全てに rst を代入する
-void write(tail, table, dfp);//出力ファイルに書き込む関数，dfp は出力ファイル
+void write(tail, table, dfp);//出力ファイルに書き込む関数， dfp は出力ファイル
 ```
 
 ほとんどの処理はこのループ内で行う．以下，特に説明がない限り，このループ内のものを解説している．
@@ -88,7 +88,7 @@ while((c = getc(sfp)) != '\n'){
 }
 ```
 
-はじめに，`set` の値を判断し，次のセットの頭部（1番目の文字）を探す．
+はじめに，`set` の値を判断し，次のセットの<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>（1番目の文字）を探す．
 
 ```c
 if (set){
@@ -102,7 +102,7 @@ if (set){
 }
 ```
 
-頭部が見つかったら，作業台に格納する．
+<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が見つかったら，<ruby>作業台<rp>（</rp><rt>buff</rt><rp>）</rp></ruby>に格納する．
 
 ```c
 buff[number] = c;
@@ -201,7 +201,7 @@ if ((has_A + has_C + has_G + has_T)==3){
 ```
 
 `has_A`, `has_C`, `has_G`, `has_T` の和は `2` の場合を考える．  
-頭部が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで完全一致比較する．発見したら書き込んで終了．
+<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで完全一致比較する．発見したら書き込んで終了．
 
 ```c
 if ((has_A + has_C + has_G + has_T)==3){
@@ -281,7 +281,7 @@ switch (marker){
   }
 ```
 
-ここまで来た場合，頭部に対し部分一致比較を行う．
+ここまで来た場合，<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>に対し部分一致比較を行う．
 
 ```c
 if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C))||((buff[0]==BASE_T)&&(buff[1]==BASE_C))){
