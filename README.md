@@ -68,6 +68,7 @@ dec では 2 つの配列 <span style="color:red">`table`</span> と <span style
 
 ### <span id = "4">4. 判定方法</span>
 ###### ここから示すコードは説明のために簡略化したもので，実際のコードと異なることがある
+<a id = "def"></a>
 まず，以下のいくつかの変数と関数を定義する．  
 
 ```c
@@ -417,8 +418,206 @@ switch (buff[0]){
 <a id = "diffmarker"></a>
 ## Diff2+Marker11 等の説明 
 ### <span id = "2.1">1. 符号化</span>  
-符号化は [Diff2times](#1) と同じなのでここで省略する．
+符号化は [Diff2times](#1) と同じなのでここで省略する．ただし，塩基 **3** つで 1 セットにするから，最後の 1 セットは塩基 **2** つしかない．このセットだけ，Marker を書かない（そもそも X, Y しかなく Z がない）.
 
 ### <span id = "2.2">2. enc.c について</span>
 塩基 **3** つ（左から XYZ とする）で **1** セットとする．X，Y は直接[符号化した文字列](#1)を書き込む．Z は Marker なのでそのまま **11** 回書く．  
+
+![](https://i.postimg.cc/pV9Th934/Xnip-2021-01-10-01-34-32.png)  
+###### 例
+
+|Set|Encoding|
+|:---:|:---:|
+|AAC|CAGCAGCCCCCCCCCCC|
+|CGT|GCTTGATTTTTTTTTTT|
+|GTC|TGAATCCCCCCCCCCCC|
+|CAT|GCTCAGTTTTTTTTTTT|
+
+### <span id = "2.3">3. dec.c について</span>
+これもまた [Diff2times](#3) と同じ 2 つの配列 <span style="color:red">`table`</span> と <span style="color:red">`buff`</span> を持つ．  
+
+全体のワークフローは以下のようになる．  
+
+1. seqdata から次々と文字を読み込んで，作業台 <span style="color:red">`buff`</span> に格納する．  
+2. 連続 **6** 文字が同じ文字なら Marker と判断し読み込みはいったん止めて判定処理に入る．この時作業台 <span style="color:red">`buff`</span> に 1 セットが格納されているはず．
+3. <span style="color:red">`table`</span> をクリアする．
+4. Marker を <span style="color:red">`table`</span> に書き込む．
+5. X，Y を判定するので <span style="color:red">`buff`</span> の中の Marker 部分を消す．
+6. [判定処理](#2.4)を行い，判定した X，Y を <span style="color:red">`table`</span> に書き込む．
+7. X, Y, Z が判定できたので <span style="color:red">`table`</span>  の内容（X, Y, Z）を出力ファイル decdata に書き込む．
+8. このセットの処理が終わったので <span style="color:red">`buff`</span> をクリアする．
+9. 1 に戻って，seqdata がなくなるまで続く．
+
+### <span id = "2.4">4. 判定方法</span>
+###### ここから示すコードは説明のために簡略化したもので，実際のコードと異なることがある
+以下のいくつかの変数と関数を定義する．なお，[Diff2times](#def) と同じ変数と関数の説明は省略する．  
+
+```c
+unsigned char checked = '-';//処理済みの文字に記号で示すためのもの，現実で消し線を引くと同じ感じ
+unsigned char rst = '0';
+unsigned char c;
+unsigned char check_marker;
+unsigned char marker;
+unsigned char dismiss;
+int count;
+int tail;
+int number;
+int set;
+void init(buff);//初期化
+void write(tail, table, dfp);//書き込む
+```
+
+判定方法は [Diff2times](#4) と枠組みが同じなので，判定処理の部分だけ解説する．  
+
+まず初期化操作を行い，Marker を <span style="color:red">`table`</span> に書き込む.
+
+```c
+count = 0;
+init(table);
+tail = number - 6;
+for (int i = 0;i < 6;i++){
+  buff[number-i] = rst;
+}
+table[tail+3] = marker;
+```
+
+<span style="color:red">`buff`</span> の内容を先頭から確認し，完全一致でマッチする．一つ見つかったらマッチした部分を `checked` に換え，この操作を停止する．
+
+```c
+for (int i = 0; i < tail-1; i++){
+  if (buff[i]==checked) continue;
+  if ((buff[i]==BASE_A)&&(buff[i+1]==BASE_T)&&(buff[i+2]==BASE_C)){
+    table[i] = BASE_T;
+    count++;
+    buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+    break;
+  }
+  if ((buff[i]==BASE_C)&&(buff[i+1]==BASE_A)&&(buff[i+2]==BASE_G)){
+    table[i] = BASE_A;
+    count++;
+    buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+    break;
+  }
+  if ((buff[i]==BASE_G)&&(buff[i+1]==BASE_C)&&(buff[i+2]==BASE_T)){
+    table[i] = BASE_C;
+    count++;
+    buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+    break;
+  }
+  if ((buff[i]==BASE_T)&&(buff[i+1]==BASE_G)&&(buff[i+2]==BASE_A)){
+    table[i] = BASE_G;
+    count++;
+    buff[i] = checked; buff[i+1] = checked; buff[i+2] = checked;
+    break;
+  }
+}
+```
+
+次に末尾から先頭へ内容を確認し，完全一致でマッチする．
+
+```c
+for (int i = 2; i < tail; i++){
+  if (buff[tail-i]==checked) continue;
+  if ((buff[tail-i]==BASE_A)&&(buff[tail-i+1]==BASE_T)&&(buff[tail-i+2]==BASE_C)){
+    table[tail-i] = BASE_T;
+    count++;
+    buff[tail-i] = checked; buff[tail-i+1] = checked; buff[tail-i+2] = checked;
+    break;
+  }
+  if ((buff[tail-i]==BASE_C)&&(buff[tail-i+1]==BASE_A)&&(buff[tail-i+2]==BASE_G)){
+    table[tail-i] = BASE_A;
+    count++;
+    buff[tail-i] = checked; buff[tail-i+1] = checked; buff[tail-i+2] = checked;
+    break;
+  }
+  if ((buff[tail-i]==BASE_G)&&(buff[tail-i+1]==BASE_C)&&(buff[tail-i+2]==BASE_T)){
+    table[tail-i] = BASE_C;
+    count++;
+    buff[tail-i] = checked; buff[tail-i+1] = checked; buff[tail-i+2] = checked;
+    break;
+  }
+  if ((buff[tail-i]==BASE_T)&&(buff[tail-i+1]==BASE_G)&&(buff[tail-i+2]==BASE_A)){
+    table[tail-i] = BASE_G;
+    count++;
+    buff[tail-i] = checked; buff[tail-i+1] = checked; buff[tail-i+2] = checked;
+    break;
+  }
+}
+```
+
+以上の 2 つの探索でもし両方とも成功したならば出力ファイルに書き込み処理を終了．
+
+```c
+if (count >= 2){
+  write(tail, table, dfp);
+  init(buff);
+  number = 0;
+  continue;
+}
+```
+
+`check_marker` と先頭から2番目まで完全一致でマッチする．同じ操作を `marker` でも行う．
+
+```c
+switch (check_marker){
+  case BASE_A:
+    if ((buff[0]==BASE_T)&&(buff[1]==BASE_C)){
+      table[0] = BASE_T;
+      count++;
+      buff[0] = checked; buff[1] = checked;
+    }
+  break;
+  case BASE_C:
+    if ((buff[0]==BASE_A)&&(buff[1]==BASE_G)){
+      table[0] = BASE_A;
+      count++;
+      buff[0] = checked; buff[1] = checked;
+    }
+  break;
+  case BASE_G:
+    if ((buff[0]==BASE_C)&&(buff[1]==BASE_T)){
+      table[0] = BASE_C;
+      count++;
+      buff[0] = checked; buff[1] = checked;
+    }
+  break;
+  case BASE_T:
+    if ((buff[0]==BASE_G)&&(buff[1]==BASE_A)){
+      table[0] = BASE_G;
+      count++;
+      buff[0] = checked; buff[1] = checked;
+    }
+  break;
+}
+switch (marker){
+  case BASE_A:
+    if ((buff[tail]==BASE_G)&&(buff[tail-1]==BASE_T)){
+      table[tail] = BASE_G;
+      count++;
+      buff[tail] = checked; buff[tail-1] = checked;
+    }
+  break;
+  case BASE_C:
+    if ((buff[tail]==BASE_T)&&(buff[tail-1]==BASE_A)){
+      table[tail] = BASE_T;
+      count++;
+      buff[tail] = checked; buff[tail-1] = checked;
+    }
+  break;
+  case BASE_G:
+    if ((buff[tail]==BASE_A)&&(buff[tail-1]==BASE_C)){
+      table[tail] = BASE_A;
+      count++;
+      buff[tail] = checked; buff[tail-1] = checked;
+    }
+  break;
+  case BASE_T:
+    if ((buff[tail]==BASE_C)&&(buff[tail-1]==BASE_G)){
+      table[tail] = BASE_C;
+      count++;
+      buff[tail] = checked; buff[tail-1] = checked;
+    }
+  break;
+}
+```
 
