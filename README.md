@@ -1,5 +1,10 @@
 # Group 17  
-## Diff2times の説明  
+##### 目次
+* [Diff2times の説明](#diff2times)
+* [Diff2+Marker11 等の説明（編集中）](#diffmarker)  
+
+<a id = "diff2times"></a>
+## Diff2times の説明 
 ### <span id = "1">1. 符号化</span>  
 まず，2進数と4塩基との対応関係は以下のようになる．  
 
@@ -23,7 +28,7 @@
 
 ### <span id = "2">2. enc.c について</span>
 Dec での判定の都合上，塩基 **2** つで **1** セットとする．元のデータは 200000 ビットの数字だから 100000 個の塩基に変換することができ，50000 セットになる．ここで，1 セットの 2 つの塩基を X, Y ( X は Y の前にある)とする．  
-X に対して，[1](#1) で説明した符号化を施し，符号化の結果を X の左右に書く．Y を Marker にするから，符号化せずにそのまま 8 回書く．  
+X に対して，[1](#1) で説明した符号化を施し，符号化の結果を X の左右に書く．Y を Marker にするから，符号化せずにそのまま **8** 回書く．  
 
 ![](https://i.postimg.cc/sXtW1MrR/Xnip-2021-01-08-21-36-24.png)
 ###### 例
@@ -201,7 +206,7 @@ if ((has_A + has_C + has_G + has_T)==3){
 ```
 
 `has_A`, `has_C`, `has_G`, `has_T` の和は `2` の場合を考える．  
-<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで<ruby>完全一致<rp>（</rp><rt>exact match</rt><rp>）</rp></ruby>で比較する．発見したら書き込んで終了．
+<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>が一つ前の Marker と同じの場合を仮定して `check_marker` を含んで完全一致比較する．発見したら書き込んで終了．
 
 ```c
 if ((has_A + has_C + has_G + has_T)==3){
@@ -281,7 +286,7 @@ switch (marker){
   }
 ```
 
-ここまで来た場合，<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>に対し<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較を行う．
+ここまで来た場合，<ruby>頭部<rp>（</rp><rt>head</rt><rp>）</rp></ruby>に対し部分一致比較を行う．
 
 ```c
 if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C))||((buff[0]==BASE_T)&&(buff[1]==BASE_C))){
@@ -316,7 +321,7 @@ if (((buff[0]==BASE_A)&&(buff[1]==BASE_T))||((buff[0]==BASE_A)&&(buff[1]==BASE_C
   }
 ```
 
-さらに，`check_marker` と `marker` を含んで<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較する．
+さらに，`check_marker` と `marker` を含んで部分一致比較する．
 
 ```c
 if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
@@ -405,6 +410,15 @@ switch (buff[0]){
 ```
 
 `has_A`, `has_C`, `has_G`, `has_T` の和は `1` の場合を考える．  
-和が `2` の時と同じく<ruby>部分一致<rp>（</rp><rt>partial match</rt><rp>）</rp></ruby>で比較を行い，それで終わらなければ読み取った値をそのまま書き込んで終了．この部分は前述と同じなので省略する．  
+和が `2` の時と同じく部分一致比較を行い，それで終わらなければ読み取った値をそのまま書き込んで終了．この部分は前述と同じなので省略する．  
 
 これで処理過程が終わった．
+
+<a id = "diffmarker"></a>
+## Diff2+Marker11 等の説明 
+### <span id = "2.1">1. 符号化</span>  
+符号化は [Diff2times](#1) と同じなのでここで省略する．
+
+### <span id = "2.2">2. enc.c について</span>
+塩基 **3** つ（左から XYZ とする）で **1** セットとする．X，Y は直接[符号化した文字列](#1)を書き込む．Z は Marker なのでそのまま **11** 回書く．  
+
