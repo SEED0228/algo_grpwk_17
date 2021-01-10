@@ -1,7 +1,9 @@
 # Group 17  
 ##### 目次
-* [Diff2times の説明](#diff2times)
-* [Diff2+Marker11 等の説明（編集中）](#diffmarker)  
+* [Diff2times の説明](#diff2times)  
+* [Diff2+Marker11 等の説明あ](#diffmarker)
+	* [Diff2+Marker11 の説明](#diffmarker)
+	* [Diff{A}+Marker{B} シリーズ](#2.5)
 
 <a id = "diff2times"></a>
 ## Diff2times の説明 
@@ -621,3 +623,233 @@ switch (marker){
 }
 ```
 
+`count` の値，つまり今まで探索の成功回数で条件分岐する．  
+
+`count` の値が `1` のとき，先頭から部分一致でマッチする． 
+
+```c
+if (count == 1){
+  for (int i = 0; i < tail ;i++){
+    if (count >= 2) break;
+    if (buff[i]==checked) continue;
+    if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
+      table[i] = BASE_T;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
+      table[i] = BASE_A;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
+      table[i] = BASE_C;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
+      table[i] = BASE_G;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+  }
+  ...
+ }
+```
+
+`check_marker` と `marker` を含めて先頭と末尾をチェックする．  
+
+```c
+  if (((check_marker==BASE_A)&&(buff[0]==BASE_T))||((check_marker==BASE_A)&&(buff[0]==BASE_C))||((check_marker==BASE_T)&&(buff[0]==BASE_C))){
+    table[0] = BASE_T;
+    count++;
+    buff[0] = checked;
+  }
+  if (((check_marker==BASE_C)&&(buff[0]==BASE_A))||((check_marker==BASE_C)&&(buff[0]==BASE_G))||((check_marker==BASE_A)&&(buff[0]==BASE_G))){
+    table[0] = BASE_A;
+    count++;
+    buff[0] = checked;
+  }
+  if (((check_marker==BASE_G)&&(buff[0]==BASE_C))||((check_marker==BASE_C)&&(buff[0]==BASE_T))||((check_marker==BASE_G)&&(buff[0]==BASE_T))){
+    table[0] = BASE_C;
+    count++;
+    buff[0] = checked;
+  }
+  if (((check_marker==BASE_T)&&(buff[0]==BASE_G))||((check_marker==BASE_G)&&(buff[0]==BASE_A))||((check_marker==BASE_T)&&(buff[0]==BASE_A))){
+    table[0] = BASE_G;
+    count++;
+    buff[0] = checked;
+  }
+  if (count >= 2){
+    write(tail, table, dfp);
+    init(buff);
+    number = 0;
+    continue;
+  }
+  if (((buff[tail]==BASE_A)&&(marker==BASE_T))||((buff[tail]==BASE_A)&&(marker==BASE_C))||((buff[tail]==BASE_T)&&(marker==BASE_C))){
+    table[tail] = BASE_T;
+    count++;
+    buff[tail] = checked;
+  }
+  if (((buff[tail]==BASE_C)&&(marker==BASE_A))||((buff[tail]==BASE_C)&&(marker==BASE_G))||((buff[tail]==BASE_A)&&(marker==BASE_G))){
+    table[tail] = BASE_A;
+    count++;
+    buff[tail] = checked;
+  }
+  if (((buff[tail]==BASE_G)&&(marker==BASE_C))||((buff[tail]==BASE_C)&&(marker==BASE_T))||((buff[tail]==BASE_G)&&(marker==BASE_T))){
+    table[tail] = BASE_C;
+    count++;
+    buff[tail] = checked;
+  }
+  if (((buff[tail]==BASE_T)&&(marker==BASE_G))||((buff[tail]==BASE_G)&&(marker==BASE_A))||((buff[tail]==BASE_T)&&(marker==BASE_A))){
+    table[tail] = BASE_G;
+    count++;
+    buff[tail] = checked;
+  }
+```
+
+`count` が `0` のとき，先頭から部分一致でマッチし，さらに末尾からマッチする．どちらも 1 つ見つかったら停止する．
+
+```c
+if (count == 0){
+  for (int i = 0; i < tail;i++){
+    if (buff[i]==checked) continue;
+    if (((buff[i]==BASE_A)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_C))){
+      table[i] = BASE_T;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_C)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_A)&&(buff[i+1]==BASE_G))){
+      table[i] = BASE_A;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_G)&&(buff[i+1]==BASE_C))||((buff[i]==BASE_C)&&(buff[i+1]==BASE_T))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_T))){
+      table[i] = BASE_C;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+    if (((buff[i]==BASE_T)&&(buff[i+1]==BASE_G))||((buff[i]==BASE_G)&&(buff[i+1]==BASE_A))||((buff[i]==BASE_T)&&(buff[i+1]==BASE_A))){
+      table[i] = BASE_G;
+      count++;
+      buff[i] = checked; buff[i+1] = checked;
+      break;
+    }
+  }
+  for (int i = 1; i < tail; i++){
+    if (buff[tail-i]==checked) continue;
+    if (((buff[tail-i]==BASE_A)&&(buff[tail-i+1]==BASE_T))||((buff[tail-i]==BASE_A)&&(buff[tail-i+1]==BASE_C))||((buff[tail-i]==BASE_T)&&(buff[tail-i+1]==BASE_C))){
+      table[tail-i] = BASE_T;
+      count++;
+      buff[tail-i] = checked; buff[tail-i+1] = checked;
+      break;
+    }
+    if (((buff[tail-i]==BASE_C)&&(buff[tail-i+1]==BASE_A))||((buff[tail-i]==BASE_C)&&(buff[tail-i+1]==BASE_G))||((buff[tail-i]==BASE_A)&&(buff[tail-i+1]==BASE_G))){
+      table[tail-i] = BASE_A;
+      count++;
+      buff[tail-i] = checked; buff[tail-i+1] = checked;
+      break;
+    }
+    if (((buff[tail-i]==BASE_G)&&(buff[tail-i+1]==BASE_C))||((buff[tail-i]==BASE_C)&&(buff[tail-i+1]==BASE_T))||((buff[tail-i]==BASE_G)&&(buff[tail-i+1]==BASE_T))){
+      table[tail-i] = BASE_C;
+      count++;
+      buff[tail-i] = checked; buff[tail-i+1] = checked;
+      break;
+    }
+    if (((buff[tail-i]==BASE_T)&&(buff[tail-i+1]==BASE_G))||((buff[tail-i]==BASE_G)&&(buff[tail-i+1]==BASE_A))||((buff[tail-i]==BASE_T)&&(buff[tail-i+1]==BASE_A))){
+      table[tail-i] = BASE_G;
+      count++;
+      buff[tail-i] = checked; buff[tail-i+1] = checked;
+      break;
+    }
+  }
+  if (count >= 2){
+    write(tail, table, dfp);
+    init(buff);
+    number = 0;
+    continue;
+  }
+}
+```
+
+ここまで来た場合，先頭と末尾に読み込んだ内容をそのまま書き込んで終了．
+
+```c
+	int temp = count;
+	for (int i = 0; i < tail; i++){
+	  if (count != temp) break;
+	  switch (buff[i]){
+	    case BASE_A:
+	      table[i] = BASE_A;
+	        count++;
+	        buff[i] = checked;
+	    break;
+	    case BASE_C:
+	      table[i] = BASE_C;
+	        count++;
+	        buff[i] = checked;
+	    break;
+	    case BASE_G:
+	      table[i] = BASE_G;
+	        count++;
+	        buff[i] = checked;
+	    break;
+	    case BASE_T:
+	      table[i] = BASE_T;
+	        count++;
+	        buff[i] = checked;
+	    break;
+	  }
+	}
+	if (count >= 2){
+	    write(tail, table, dfp);
+	    init(buff);
+	    number = 0;
+	    continue;
+	  }
+	temp = count;
+	for (int i = 0; i < tail; i++){
+	  if (count != temp) break;
+	  switch (buff[tail-i]){
+	    case BASE_A:
+	      table[tail-i] = BASE_A;
+	        count++;
+	        buff[tail-i] = checked;
+	    break;
+	    case BASE_C:
+	      table[tail-i] = BASE_C;
+	        count++;
+	        buff[tail-i] = checked;
+	    break;
+	    case BASE_G:
+	      table[tail-i] = BASE_G;
+	        count++;
+	        buff[tail-i] = checked;
+	    break;
+	    case BASE_T:
+	      table[tail-i] = BASE_T;
+	        count++;
+	        buff[tail-i] = checked;
+	    break;
+	  }
+	}
+	write(tail, table, dfp);
+	init(buff);
+	number = 0;
+	continue;
+	//read process finish here
+	number = 0;
+	continue;
+```
+
+これで処理過程が完了したが，最後の 1 セットについては処理のループの終了後に判定する，内容は変わらないので省略する．
+
+### <span id = "2.5">5. Diff{A}+Marker{B} シリーズ</span>
+[Diff2+Marker11](#diffmarker) と同じ考え方で，Diff3+Marker9 などがある．これは名前の通り，塩基 **4** つで 1 セットとする． X<sub>1</sub> , X<sub>2</sub> , X<sub>3</sub> , Y とすると Y が Marker で，前に 3 つの塩基の符号化がある．判定方法は [Diff2+Marker11](#2.4) と少し異なるが，考え方は同じなので解説を省略する．
