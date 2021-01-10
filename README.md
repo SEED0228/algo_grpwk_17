@@ -1,7 +1,7 @@
 # Group 17  
 ##### 目次
 * [Diff2times の説明](#diff2times)  
-* [Diff2+Marker11 等の説明あ](#diffmarker)
+* [Diff2+Marker11 等の説明](#diffmarker)
 	* [Diff2+Marker11 の説明](#diffmarker)
 	* [Diff{A}+Marker{B} シリーズ](#2.5)
 
